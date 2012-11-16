@@ -6,11 +6,11 @@ clc;
 % Add libraries
 addpath('lib');
 
-load data/jjhexp.mat
+load data/klexp.mat
 
 cellMatrix = [];
 classification = [];
-nucleiMeanIntensities = [];
+nucleiMedianIntensities = [];
 
 usefulFeatures = {'MaxIntensity', 'MaxIntensityEdge', 'MedianIntensity', ...
     'MeanIntensity', 'MeanIntensityEdge', 'MinIntensity', 'MinIntensityEdge', ...
@@ -43,13 +43,13 @@ for expIdx = 1:numel(experiments)
         cpFeatureNames(removeIdxs) = [];
         
         if strcmp(objName, 'nuclei')
-            if isempty(nucleiMeanIntensities)
-                nucleiMeanIntensities = objMats.MeanIntensity(:, :, 1);
-            elseif size(objMats.MeanIntensity, 2) > size(nucleiMeanIntensities, 2)
-                nucleiMeanIntensities = [nucleiMeanIntensities nan(size(nucleiMeanIntensities, 1), size(objMats.MeanIntensity, 2) - size(nucleiMeanIntensities, 2))];
-                nucleiMeanIntensities = [nucleiMeanIntensities; objMats.MeanIntensity(:, :, 1)];
+            if isempty(nucleiMedianIntensities)
+                nucleiMedianIntensities = objMats.MedianIntensity(:, :, 2);
+            elseif size(objMats.MedianIntensity, 2) > size(nucleiMedianIntensities, 2)
+                nucleiMedianIntensities = [nucleiMedianIntensities nan(size(nucleiMedianIntensities, 1), size(objMats.MedianIntensity, 2) - size(nucleiMedianIntensities, 2))];
+                nucleiMedianIntensities = [nucleiMedianIntensities; objMats.MedianIntensity(:, :, 2)];
             else
-                nucleiMeanIntensities = [nucleiMeanIntensities; [objMats.MeanIntensity(:, :, 1) nan(size(objMats.MeanIntensity, 1), size(nucleiMeanIntensities, 2) - size(objMats.MeanIntensity, 2))]];
+                nucleiMedianIntensities = [nucleiMedianIntensities; [objMats.MedianIntensity(:, :, 2) nan(size(objMats.MedianIntensity, 1), size(nucleiMedianIntensities, 2) - size(objMats.MedianIntensity, 2))]];
             end
         end
         
