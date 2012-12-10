@@ -9,7 +9,7 @@ trainClass = classification(1:m_train);
 
 trivialModel = trainTrivial(trainMatrix, trainClass);
 
-%% Test naive bayes
+%% Test trivial classifier
 
 testMatrix = cellMatrix((m_train + 1):end, :);
 testClass = classification((m_train + 1): end);

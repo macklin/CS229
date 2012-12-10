@@ -32,8 +32,9 @@ for folderNum = 1:numel(folders)
     load(dataFileName);
     load(propFileName);
     if ~exist('properties', 'var')
-        fprintf('Skipping %s: old gui output format\n', propFileName);
-        continue;
+        fprintf('Warning %s: old gui output format\n', propFileName);
+        properties = struct('properties', struct('store', nuclei_goodbad));
+%         continue;
     end
     fprintf('%d ', folderNum);
     for objSetIdx = 1:numel(data.objectSetNames)

@@ -1,7 +1,7 @@
 function svmModel = trainSVM(trainMatrix, trainClass, options)
-    addpath('lib/libsvm-3.12/matlab');
+    addpath(fullfile(fileparts(mfilename('fullpath')),'lib/libsvm-3.12/matlab'));
     if ~exist('options', 'var')
-        options = '-t 0';
+        options = '-t 1 -d 15 -c 1e6 -r 1';
     end
     training_label_vector = trainClass;
     training_label_vector(training_label_vector ~= 1) = -1;

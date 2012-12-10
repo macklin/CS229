@@ -1,7 +1,35 @@
 %% Create Features %%
 
-clear all;
+% clear all;
 clc;
+
+featStruct = struct('cellMatrix', {}, 'cellMatrixNoFFT', {}, 'classification', {}, ...
+    'featsToKeep', {}, 'timeCourseInfo', {});
+
+timeCourseInfo = [struct('objectSetName', 'nuclei', 'cpProperty', 'MedianIntensity', ... 
+    'channelIdx', 2, 'startFrame', 1, 'endFrame', 15')];
+
+[cellMatrix, cellMatrixNoFFT, classification, ...
+ featsToKeep, normParams, timeCourseInfo] = makeFeatures(...
+                                                'data/klexp.mat', ...
+                                                 [], ...
+                                                 [0.90 0.05], ...
+                                                 [], ...
+                                                 timeCourseInfo);
+                                                   
+toLibSVM(cellMatrix, classification, 'klexp.train');
+
+[cellMatrix2, cellMatrixNoFFT, classification, ...
+ featsToKeep2, normParams, timeCourseInfo] = makeFeatures(...
+                                                'data/klexp.mat', ...
+                                                 [], ...
+                                                 [0.90 0.05], ...
+                                                 featsToKeep, ...
+                                                 timeCourseInfo);
+
+return;
+                                                   
+                                                   
 
 % Add libraries
 addpath('lib');
@@ -123,7 +151,7 @@ staticFeatures = max(cellMatrix) == min(cellMatrix);
 cellMatrix(:, staticFeatures) = [];
 featureNames(staticFeatures) = [];
 
-corrFeats = abs(corr(cellMatrix)) > 0.80;
+corrFeats = abs(corr(cellMatrix)) > 0.90;
 ignoreMatrix = triu(toeplitz(ones(size(corrFeats, 1), 1)));
 corrFeats = corrFeats .* (1-ignoreMatrix);
 removeFeats = sum(corrFeats, 1) > 0;
@@ -131,7 +159,7 @@ removeFeats = sum(corrFeats, 1) > 0;
 cellMatrix(:, removeFeats) = [];
 featureNames(removeFeats) = [];
 
-uncorrFeats = abs(corr(classification, cellMatrix)) < 0.10;
+uncorrFeats = abs(corr(classification, cellMatrix)) < 0.05;
 removeFeats = uncorrFeats;
 
 cellMatrix(:, removeFeats) = [];
@@ -139,3 +167,34 @@ featureNames(removeFeats) = [];
 
 cellMatrix = cellMatrix ./ repmat(sqrt(sum(cellMatrix.^2, 1)), size(cellMatrix, 1), 1);
 cellMatrix = cellMatrix - min(min(cellMatrix)) + 1e-4;
+
+A = zeros(size(nucleiMedianIntensities));
+for i = 1:size(A, 1)
+A(i, :) = imputeMissing(nucleiMedianIntensities(i, :));
+end
+B = diff(A, 1, 2);
+B = B - repmat(mean(B, 2), 1, size(B, 2));
+B = B ./ repmat(var(B, 1, 2), 1, size(B, 2));
+area = getCpProperty('data/klexp.mat', 'nuclei', 'Area', 1);
+F = abs(fft(A(:, 1:15), [], 2));
+F = F(:, 1:ceil(size(F,2)/2));
+G = abs(fft(B(:, 1:15), [], 2));
+G = G(:, 1:ceil(size(G,2)/2));
+G = G ./ repmat(sqrt(sum(G.^2, 1)), size(G, 1), 1);
+G = G - min(min(G));
+% F(isnan(nucleiMedianIntensities(:, 1)), :) = 0;
+cellMatrixF = [ cellMatrix (nanmean(area,2) > 150) repmat(isnan(nucleiMedianIntensities(:, 1)), 1, 1) F];
+% cellMatrixF = cellMatrixF - repmat(mean(cellMatrixF, 2), 1, size(cellMatrixF, 2));
+% cellMatrixF = cellMatrixF ./ repmat(var(cellMatrixF, 1, 2), 1, size(cellMatrixF, 2));
+% cellMatrixF = cellMatrixF ./ repmat(sqrt(sum(cellMatrixF.^2, 1)), size(cellMatrixF, 1), 1);
+% cellMatrixF = cellMatrixF - min(min(cellMatrixF));
+
+
+% corrFeats = abs(corr(cellMatrixF)) > 0.80;
+% ignoreMatrix = triu(toeplitz(ones(size(corrFeats, 1), 1)));
+% corrFeats = corrFeats .* (1-ignoreMatrix);
+% removeFeats = sum(corrFeats, 1) > 0;
+% 
+% cellMatrixF(:, removeFeats) = [];
+
+toLibSVM(cellMatrixF, classification, 'klexp.train');

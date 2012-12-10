@@ -12,8 +12,13 @@ trainMatrix = cellMatrix(1:m_train, :);
 trainClass = classification(1:m_train);
 
 % linSVMModel = trainLinearSVM(trainMatrix, trainClass);
-svmModel = trainSVM(trainMatrix, trainClass, '-t 1 -d 9 -c 800 -h 0');
+% KL: fft 15 frames: 87.7% precision, 74.3% recall
+%svmModel = trainSVM(trainMatrix, trainClass, '-t 1 -d 15 -c 600000 -r 1');
+% KL: fft 15 frames, areamean > 150,: 52.4% precision, 90.7% recall
+% svmModel = trainSVM(trainMatrix, trainClass, '-t 1 -d 15 -c 1500000 -r 1');
+svmModel = trainSVM(trainMatrix, trainClass, '-t 2 -g 2 -c 128');
 
+saveModel(svmModel, 'SVM', featsToKeep, timeCourseInfo, normParams, 'klmodel.mat')
 
 %% Test SVM
 
